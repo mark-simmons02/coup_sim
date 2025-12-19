@@ -1,0 +1,13 @@
+{
+    "code-runner.executorMap": {
+        "cpp": "g++ -std=c++17 ${workspaceFolder}/src/*.cpp -o ${workspaceFolder}/program.exe; if ($?) { & '${workspaceFolder}/program.exe' }"
+    },
+    "code-runner.runInTerminal": true,
+    "files.associations": {
+        "ostream": "cpp",
+        "set": "cpp",
+        "stdexcept": "cpp",
+        "vector": "cpp",
+        "iostream": "cpp"
+    }
+}

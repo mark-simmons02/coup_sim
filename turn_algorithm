@@ -1,0 +1,65 @@
+turn algorithm
+
+start of turn
+//current player needs to choose an action 
+current_player.choose_action()
+
+if action requires coins:
+    if not enough coins
+        disqualify player
+        invalidate action
+
+
+if action requires influence:
+//    all other players decide whether to challenged
+*    for each other player:
+*        other_player_confidence = other_player.make_decicion(2, public_state)
+    of players who challenge, one is chosen, either at random or by given confidence number
+
+    if action is challenged:
+        if action is justified:
+            challenging player loses influence
+            challenged player gets new random card from deck
+
+        else:
+            challenged player loses influence
+            end turn
+// all other players must decide if they want to block the action
+of players who block, one is chosen, either at random or by given confidence number
+check for blocks:
+    if action blocked:
+        check for challenges to block
+//        current player must choose whether to challenge the block
+        if block is challenged:
+            if block is justified:
+                challenging player loses influence
+                blocked player swaps cards
+                end turn
+            else:
+                blocking player loses influence
+        else:
+            end turn
+
+resolve action
+end of turn
+
+disqualifying player things to consider
+removing player from turn order
+removing public state of number of influences and coins
+removing players own influences tracker
+
+world. remove player
+
+    rebuild turn order without player
+    still have problem of maintaining public information and player information to be consistent
+
+    ensure that whenever coins are changed in player, also changed in public state
+    ensure that whenever influence is lost in player, is also lost in public state
+
+    should have world member function which does both in tandem
+
+
+coup cannot be played optimally by a machine learning model because it lacks the ability to encode historical information
+about how other players have acted in previous turns. Without this context, the model cannot accurately calculate probabilities of players having different cards.
+
+Therefore along side the public and private data, each model would be required to have access to the public estimation of the probabilities that each player had each card.

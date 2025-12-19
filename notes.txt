@@ -1,0 +1,27 @@
+    action ids:
+0 - No input action
+1 - Income
+2 - Foreign Aid
+3 - Coup
+4 - Assassinate
+5 - Steal
+6 - Tax
+7 - Exchange
+
+influence list order
+ambassador, assassin, captain, contessa, duke
+
+Types of actions which require decisions to be made:
+
+Which action to choose at start of turn (target, action)
+Whether to challenge a player's action (boolean)
+Whether to block a player's action (boolean)
+Whether to challenge a player's block (boolean)
+Which card to reveal when losing an influence
+Which cards to keep when using exchange
+Which player to coup when reaching 10 coins
+
+TODO:
+
+generalise to any number of players.
+
