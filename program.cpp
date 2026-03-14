@@ -1,235 +1,185 @@
-#include <cmath>
-#include <set> 
-#include "lib/helper.h"
-#include "lib/world.h"   
-#include "lib/player.h"
-#include <stdlib.h>
-using namespace std;
 #include <iostream>
+#include <cmath>
+#include <set>
+#include <stdlib.h>
+#include "lib/helper.h"
+#include "lib/world.h"
+#include "lib/player.h"
+
+using namespace std;
+
+// Helper function to get coin count
+int get_coins(const world& w, int player_id) {
+    return w._public_state.coins[player_id];
+}
+
+// Helper function to validate action
+bool is_action_valid(const world& w, int current_player, int target_player_id, int action_id) {
+    return !((action_id == 3 && get_coins(w, current_player) < 7) ||
+             (action_id == 4 && get_coins(w, current_player) < 3) ||
+             (action_id == 5 && get_coins(w, target_player_id) < 2) ||
+             !w._public_state.is_playing(target_player_id));
+}
+
+// Helper function to get challengers
+vector<int> get_challengers(const world& w, int current_player, int target_player_id,
+                             int action_id, vector<player>& players) {
+    vector<int> challenger_ids;
+    for (auto& player : players) {
+        if (player.id != current_player && w._public_state.is_playing(player.id)) {
+            if (player.decide_challenge(current_player, target_player_id, action_id, 
+                                       w._public_state)) {
+                challenger_ids.push_back(player.id);
+            }
+        }
+    }
+    return challenger_ids;
+}
+
+// Helper function to process challenge
+bool process_challenge(world& w, int challenger_id, int current_player, int& loser_id, int& winner_id) {
+    if (action_is_justified(0, w.players[current_player].influences)) {
+        loser_id = challenger_id;
+        winner_id = current_player;
+        cout << "Action justified. Player " << loser_id << " loses influence.\n";
+    } else {
+        loser_id = current_player;
+        winner_id = challenger_id;
+        cout << "Action not justified. Current player loses influence.\n";
+        return false;
+    }
+    w.lose_influence(loser_id, false);
+    w.lose_influence(winner_id, true);
+    w.player_draw_influence(winner_id);
+    return true;
+}
+
+// Helper function to get blockers
+vector<int> get_blockers(const world& w, int current_player, int target_player_id, 
+                         int action_id, vector<player>& players) {
+    vector<int> blocker_ids;
+    if (action_id == 2) {
+        for (auto& player : players) {
+            if (player.id != current_player && w._public_state.is_playing(player.id)) {
+                if (player.decide_block(current_player, target_player_id, action_id, 
+                                       w._public_state)) {
+                    blocker_ids.push_back(player.id);
+                }
+            }
+        }
+    } else if (action_id == 4 || action_id == 5) {
+        if (players[target_player_id].decide_block(current_player, target_player_id, 
+                                                   action_id, w._public_state)) {
+            blocker_ids.push_back(target_player_id);
+        }
+    }
+    return blocker_ids;
+}
 
 int main() {
     srand((unsigned)time(0));
-    cout<<"Coup simulation started."<<endl;
-    int target_player_id;
-    int action_id;
-    int challenger_id;
-    int blocker_id;
-    int loser_id;
-    int winner_id;
-    bool action_justified;
-    bool forced_coup;
-    vector<int> current_player_action;
-    vector<int> challenger_ids;
-    vector<int> blocker_ids;
-    vector<player>::iterator it;
+    cout << "Coup simulation started.\n";
 
-    world new_world = world(4);
+    world new_world(4);
+    cout << "World with 4 players created.\n";
 
-    cout<<"World with 4 players created."<<endl;
-
-    while(new_world.is_not_finished()){
-        cout << endl;    
-        cout <<"Start of turn"<<endl;
-        cout << endl;
+    while (new_world.is_not_finished()) {
+        cout << "\n=== Start of turn ===\n";
         int current_player = new_world.get_next_player().id;
-        cout << "Start of player " << current_player<<"'s turn." << endl;
+        cout << "Player " << current_player << "'s turn.\n";
 
-    //current player makes decision
-        if (new_world.public_state.coins[current_player] < 10){
-            forced_coup = false;
+        // Determine if coup is forced
+        bool forced_coup = (get_coins(new_world, current_player) >= 10);
+        vector<int> action = new_world.players[current_player].choose_taken_action(
+            new_world._public_state, forced_coup);
+
+        int target_player_id = action[0];
+        int action_id = action[1];
+        bool action_justified = true;
+
+        // Display action
+        if (action_id < 3 || action_id > 5) {
+            cout << "Action: " << action[1] << "\n";
+        } else {
+            cout << "Action: " << action_id << " targeting player " << target_player_id << "\n";
         }
-        else{
-            forced_coup = true;
-        }
-        current_player_action = new_world.players[current_player].choose_taken_action(new_world.public_state, forced_coup);
-        action_justified = true;
 
-            if(current_player_action[1]<3 ||
-            current_player_action[1]>5){
-                cout << "Current Player Action ";
-
-                cout <<current_player_action[1]<<" ";
-            }
-            else{
-                cout << "Current Player Target and Action ";
-
-                for (int val : current_player_action) {
-                    cout << val << " ";
-                }
-            }
-        cout << endl;
-coins[current_player]
-        target_player_id = current_player_action[0], action_id = current_player_action[1];
-    //if action requires coins check coin count
-        if ( (action_id == 3 && new_world.public_state.coins[current_player]<7) || 
-        (action_id == 4 && new_world.public_state.coins[current_player]<3) ||
-        (action_id == 5 && new_world.public_state.coins[target_player_id]<2) ||
-         !new_world.public_state.is_playing(target_player_id) ){ 
-            
-            cout << "Invalid action, either not enough coins or targeting player already out."<< 
-            "Current player is disqualified"<<endl;
-            // invalid action, not enough coins, disqualify player.
+        // Validate action
+        if (!is_action_valid(new_world, current_player, target_player_id, action_id)) {
+            cout << "Invalid action. Player disqualified.\n";
             action_justified = false;
             new_world.remove_player(current_player);
-        }
-        // assassninate requires payment even if action fails.
-        else if(action_id ==4){
+        } else if (action_id == 4) {
             new_world.pay(current_player);
         }
-    //if action requires influence
 
+        // Handle challenges for influence-requiring actions
         if (action_id > 3 && action_justified) {
-            challenger_ids = {};
-
-    // for each other player in turn order queue        
-            for ( it = new_world.players.begin(); it!= new_world.players.end(); ++it) {
-
-                if (it->id != current_player && new_world.public_state().is_playing(it->id)) {
-    // make decision
-                    if (it -> decide_challenge(current_player, target_player_id, action_id, new_world.public_state()) == 1){
-                        challenger_ids.push_back( it->id);    
-                    }
-                }      
+            vector<int> challengers = get_challengers(new_world, current_player, target_player_id,
+                                                      action_id, new_world.players);
+            if (!challengers.empty()) {
+                int challenger_id = challengers[rand() % challengers.size()];
+                cout << "Player " << challenger_id << " challenges!\n";
+                int loser_id, winner_id;
+                action_justified = process_challenge(new_world, challenger_id, current_player, loser_id, winner_id);
+            } else {
+                cout << "No challenges.\n";
             }
-    //if someone has challenged, process challenge
-            if (challenger_ids.size() > 0){
-    // challenger_ids is a vector of ids of players who challenge. choose one at random
-                int challenger_id = challenger_ids[rand() % challenger_ids.size()];
-                cout << "Player number " << challenger_id <<" challenges player number "<< current_player<<"'s action."<< endl;
-                if (action_is_justified(action_id, new_world.players[current_player].influences)){
-                    loser_id = challenger_id;
-                    winner_id = current_player;
-                    cout << "Action is justified. Player "<<loser_id<<" loses influence, challenged player "<<winner_id<<" changes influence." << endl;
-                    //TODO add implementation of function to let challenger choose new influence
-                }
-                else{loser_id = current_player;
-                    winner_id = challenger_id;
-                    cout << "Action is not justified. Current player loses influence." << endl;
+        }
+
+        // Handle blocks
+        if (action_justified) {
+            vector<int> blockers = get_blockers(new_world, current_player, target_player_id, 
+                                               action_id, new_world.players);
+            
+            if (!blockers.empty()) {
+                int blocker_id = blockers[rand() % blockers.size()];
+                cout << "Blocker: " << blocker_id << "\n";
+                
+                vector<int> challengers = get_challengers(new_world, current_player, blocker_id,
+                                                          action_id, new_world.players);
+                if (!challengers.empty()) {
+                    int challenger_id = challengers[rand() % challengers.size()];
+                    cout << "Block challenged by " << challenger_id << "\n";
+                    
+                    if (block_is_justified(action_id, new_world.players[target_player_id].influences)) {
+                        cout << "Block justified. Challenger loses influence.\n";
+                        new_world.lose_influence(challenger_id, false);
+                        new_world.lose_influence(blocker_id, true);
+                        action_justified = false;
+                    } else {
+                        cout << "Block not justified. Blocker loses influence.\n";
+                        new_world.lose_influence(blocker_id, false);
+                        new_world.lose_influence(challenger_id, true);
+                    }
+                    new_world.player_draw_influence(blocker_id);
+                } else {
+                    cout << "Block succeeds.\n";
                     action_justified = false;
                 }
-                // remove influence from challenger, current player swaps cards
-                //search for loser
-
-                new_world.lose_influence(loser_id, false);
-
-                new_world.lose_influence(winner_id, true);
-                new_world.player_draw_influence(winner_id);
-                
-            // end of loser of challenge losing inflluence                
-            }// end of if there is at least one challenger
-            else{
-                cout<<"No challenges"<<endl;
+            } else {
+                cout << "No blocks.\n";
             }
-        } // end of challenge processing
-        // if action is still valid
-        if (action_justified){
-            //if action has an id which relates to a blockable action
-            //different collection method of blocker ids to collect from everyone when action is 2 and only from challenger when id is 4,5
-            blocker_ids = {};
-            //if foreign aid check all players for blocks
-            if(action_id == 2){
-        // for each other player in turn order queue        
-                for ( it = new_world.players.begin(); it!= new_world.players.end(); ++it) {
+        }
 
-                    if (it->id != current_player && new_world.public_state().is_playing(it->id)) {
-        // make decision
-                        if (it -> decide_block(current_player, target_player_id, action_id, new_world.public_state()) == 1){
-                            blocker_ids.push_back(it->id);    
-                        }
-                    }      
-                }   
-            }
-            //else if assassinate or steal ony check if target wants to block
-            else if(action_id == 4 || action_id == 5){
-                //search for target player
-                if (new_world.players[target_player_id].decide_block(current_player, target_player_id, action_id, new_world.public_state()) == 1){
-        // challenger_ids is a vector of ids of players who block. choose one at random
-                    blocker_ids.push_back(target_player_id);    
-                }
-            }
-                    //check if block is challenged
-            challenger_ids = {};
-            //check for anyone who wants to challenge block
-            if (blocker_ids.size() > 0){
-                //choose blocker from blockers
-                blocker_id = blocker_ids[rand() % blocker_ids.size()];
-                    cout << "Blocker ID: " << blocker_id << endl;
-
-                for (it = new_world.players.begin(); it!= new_world.players.end(); ++it) {
-                    if (it->id != blocker_id && new_world.public_state().is_playing(it->id)) {
-            // make decision    
-                        if (it ->decide_challenge_block(current_player, blocker_id, action_id, new_world.public_state()) == 1){
-                            
-                            challenger_ids.push_back( it->id);    
-                        }
-                    }
-                }
-            // if at least one person challenges
-                if (challenger_ids.size() > 0){
-            // challenger_ids is a vector of ids of players who challenge. choose one at random
-                    int challenger_id = challenger_ids[rand() % challenger_ids.size()];
-                    cout << "Challenger to block ID: " << challenger_id << endl;
-                    if (block_is_justified(action_id, new_world.players[target_player_id].influences)){
-                        loser_id = challenger_id;
-                        winner_id = blocker_id;
-                        cout << "Block is justified. Challenger loses influence, blocker shuffles influence." << endl;
-                        action_justified = false;
-                        // TODO allow current player to swap out influence
-
-                    }
-                    else{loser_id = blocker_id;
-                        winner_id = challenger_id;
-                        cout << "Block is not justified. Blocker player "<< blocker_id<<" loses influence." << endl;
-                    }
-                    // remove influence from loser
-                    new_world.lose_influence(loser_id, false);
-                    new_world.lose_influence(winner_id, true);
-                    cout<<"three"<<endl;
-                    new_world.player_draw_influence(winner_id);
-                }// end of if at least one person challenges
-                        // if noone challenges then block succeeds
-                else{action_justified = false;
-                    cout<<"No challenges to block"<<endl;
-                }
-            }// end of if player blocks
-            else{
-                cout<<"No blocks"<<endl;
-            }
-        }// end of if action can be blocked
-
-        if (action_justified){
-            cout << "Action is carried out." << endl;
-            if (new_world.public_state().is_playing(target_player_id) || action_id < 3 || action_id >5){ 
+        // Execute action
+        if (action_justified) {
+            cout << "Action executed.\n";
+            if (new_world._public_state.is_playing(target_player_id) || action_id < 3 || action_id > 5) {
                 new_world.carry_out_action(current_player, target_player_id, action_id);
             }
         }
-    cout << endl;    
-    cout <<"End of turn"<<endl;
-    cout << endl;
 
-    cout << "Coins of players"<< endl;
-    for (int i = 0; i < new_world.players.size(); ++i){
-        cout << new_world.public_state().coins[i] << ' ';}
-    cout << endl;
-
-    cout << "influence of players" << endl;
-    for (int i = 0; i < new_world.players.size(); ++i){
-        cout << new_world.public_state().influences[i] << ' ';}
-    cout << endl;
-    
-    cout << "Player influences after turn:\n";
-    for (const auto &p : new_world.players) {
-        cout << "Player " << p.id << ": ";
-        for (int infl : p.influences) {
-            cout << infl << " ";
+        // Display end-of-turn state
+        cout << "\n=== End of turn ===\n";
+        cout << "Coins: ";
+        for (int i = 0; i < new_world.players.size(); ++i) {
+            cout << new_world._public_state.coins[i] << " ";
         }
-        cout << endl;
+        cout << "\n";
     }
-    }
-        // end of action resolution
-    cout<<"Coup simulation ended."<<endl;
-    cout<<"Player "<< new_world.get_next_player().id<< " wins!" << endl;
-
-    // cout all of player information on all players
+    cout << "Coup simulation ended.\n";
+    cout << "Winner: Player " << new_world.get_next_player().id << "\n";
+    system("pause");
     return 0;
 }

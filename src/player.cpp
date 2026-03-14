@@ -7,7 +7,7 @@ class public_state;
 using namespace std;
 #include <iostream>
 
-player::player(const std::vector<int>& influences, int id): _influences(influences), _id(id) {}
+player::player(const std::vector<int>& influences, int id): influences(influences), id(id) {}
 
 // takes public state as input, returns encoding of action taken by player as target, action_id, confidence
 std::vector<int> player::choose_taken_action(const public_state& state, bool forced_coup) const{
@@ -62,15 +62,15 @@ int player::choose_lost_influence(const public_state& state) {
 }
 
 void player::remove_influence(int i){
-    _influences[i]--;
+    influences[i]--;
 };
 
 void player::add_influence(int i){
-    _influences[i]++;
+    influences[i]++;
 }
 
 void player::disqualify(){
-    _influences = {0,0,0,0,0};
+    influences = {0,0,0,0,0};
 }
 
 // takes 2 influence indexes, allows player to choose to swap any number of influences
@@ -88,4 +88,13 @@ vector<int> player::exchange(int i, int j) {
     } while (a == b);
 
     return {all_influences[a], all_influences[b]};
+}
+
+vector<int> player::get_influence_indexes(){
+    std::vector<int> indexes;
+    for (int i = 0; i < influences.size(); i++) {
+        if (influences[i] >= 1) indexes.push_back(i);
+        if (influences[i] == 2) indexes.push_back(i);
+    }
+return indexes;
 }

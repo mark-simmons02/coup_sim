@@ -14,7 +14,7 @@ class world{
         //vector of players in the game
         std::queue<int> turn_order;
         // queue representing the turn order of players
-        std::vector<int> deck;
+        std::vector<int> _deck;
         // vector containing the number of each type of influence remaining in the deck
         public_state _public_state;
         world(int num_players);
@@ -26,7 +26,7 @@ class world{
         void player_draw_influence(int player_id);
         int draw_from_deck();
         void add_to_deck(int id);
-
+        player get_next_player();
         // we want a system which lets the player choose which removes the influence relating to the action just made, 
         // then draws a new card from the deck and adds that influence to the player.
     };

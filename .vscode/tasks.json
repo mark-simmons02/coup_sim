@@ -10,7 +10,7 @@
                 "-g",
                 "-std=c++17",
                 "${workspaceFolder}/program.cpp",
-                "${workspaceFolder}/src/action.cpp",
+                "${workspaceFolder}/src/helper.cpp",
                 "${workspaceFolder}/src/player.cpp",
                 "${workspaceFolder}/src/public_state.cpp",
                 "${workspaceFolder}/src/world.cpp",

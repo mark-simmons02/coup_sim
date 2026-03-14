@@ -7,7 +7,7 @@ using namespace std;
 
 void public_state::adjust_coins(int player_id, int amount) {
     int x = coins[player_id];
-    coins[player_id] = x +amount;
+    coins[player_id] = x + amount;
 }
 
 public_state::public_state() : coins(vector<int>()), influences(vector<int>()), public_deck(vector<int>()) {

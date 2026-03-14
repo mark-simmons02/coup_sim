@@ -79,7 +79,7 @@ world::world(int num_players) : players(), turn_order(), _deck() {
     cout << "Player influences after initialization:\n";
     for (const auto &p : players) {
         cout << "Player " << p.id << ": ";
-        for (int infl : p.influence) {
+        for (int infl : p.influences) {
             cout << infl << " ";
         }
         cout << endl;
