@@ -2,7 +2,7 @@
 #include <set>
 #include "../lib/world.h"
 #include "../lib/player.h"
-#include "../lib/action.h"
+#include "../lib/helper.h"
 #include <stdlib.h>
 #include <iostream>
 using namespace std;
@@ -15,14 +15,10 @@ player world::get_next_player() {
         turn_order.push(next_player);
     } else {
         turn_order.pop();
-        next_player = get_next_player().get_id();
+        next_player = get_next_player().id;
     }
 
     return players[next_player];
-}
-
-std::vector<player>& world::get_players() {
-    return players;
 }
 
 void world::remove_player(int player_id) {
@@ -37,12 +33,8 @@ void world::remove_player(int player_id) {
         }
     }
     _public_state.disqualify(player_id); // sets public state number of influences to 0
-    get_players()[player_id].disqualify(); //sets player influence vector to 0
+    players[player_id].disqualify(); //sets player influence vector to 0
     turn_order = new_turn_order;
-}
-
-public_state world::get_public_state() const {
-    return _public_state;
 }
 
 void world::player_draw_influence(int player_id){
@@ -50,11 +42,6 @@ void world::player_draw_influence(int player_id){
     players[player_id].add_influence(influence);
     _public_state.increment_influence(player_id);
 }
-
-std::vector<int>& world::get_deck(){
-    return _deck;
-}
-
 
 int world::draw_from_deck(){
     int choice;
@@ -91,14 +78,14 @@ world::world(int num_players) : players(), turn_order(), _deck() {
     }
     cout << "Player influences after initialization:\n";
     for (const auto &p : players) {
-        cout << "Player " << p.get_id() << ": ";
-        for (int infl : p.get_influences()) {
+        cout << "Player " << p.id << ": ";
+        for (int infl : p.influence) {
             cout << infl << " ";
         }
         cout << endl;
     }
     for (int i = 0; i < num_players; i++) {
-        turn_order.push(players[i].get_id());
+        turn_order.push(players[i].id);
     }
 }
 
@@ -109,7 +96,7 @@ bool world::is_not_finished(){
 
 void world::lose_influence(int player_id, bool swap){
 
-    if (_public_state.get_influences()[player_id] == 2 || swap){
+    if (_public_state.influences[player_id] == 2 || swap){
         int i = players[player_id].choose_lost_influence(_public_state);
         if (swap){
             _deck[i]++;
@@ -180,7 +167,7 @@ void world::carry_out_action(int current_player_id, int target_player_id, int ac
             // cout<<"deck before exchange"<<endl;
             // print_vector(_deck);
             // cout<<"influences before exchange"<<endl;
-            // print_vector(players[current_player_id].get_influences());
+            // print_vector(players[current_player_id].influences);
 
             // i is the index of a random card from the deck, mirroring the index of an influence
             int i = draw_from_deck();
@@ -202,7 +189,7 @@ void world::carry_out_action(int current_player_id, int target_player_id, int ac
             // cout<<"deck after exchange"<<endl;
             // print_vector(_deck);
             // cout<<"influences after exchange"<<endl;
-            // print_vector(players[current_player_id].get_influences());
+            // print_vector(players[current_player_id].influences);
             
             break;
     }

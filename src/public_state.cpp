@@ -1,17 +1,9 @@
 #include <cmath>
 #include <set>
-#include "../lib/action.h"
+#include "../lib/helper.h"
 #include "../lib/world.h"
 #include <stdlib.h>
 using namespace std;
-
-std::vector<int> public_state::get_influences() const {
-    return influences;
-}
-
-std::vector<int> public_state::get_public_deck() const {
-    return public_deck;
-}
 
 void public_state::adjust_coins(int player_id, int amount) {
     int x = coins[player_id];
@@ -33,10 +25,6 @@ void public_state::add_card(int i){
     public_deck[i]++;
 }
 
-int public_state::get_coins(int player_id) const{
-    return coins[player_id];
-}
-
 void public_state::decrement_influence(int player_id) {
 
     influences[player_id]--;
@@ -48,7 +36,7 @@ void public_state::increment_influence(int player_id) {
 }
 
 bool public_state::is_playing(int player_id) const {
-    return (get_influences()[player_id] > 0);
+    return (influences[player_id] > 0);
 }
 
 void public_state::disqualify(int player_id){

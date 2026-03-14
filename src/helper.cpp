@@ -1,4 +1,4 @@
-#include "action.h"
+#include "helper.h"
 #include <stdexcept>
 #include <vector>
 #include <stdlib.h>
@@ -10,6 +10,7 @@
 #include <stdlib.h>
 using namespace std;
 #include <iostream>
+
 bool block_is_justified(int action_id, std::vector<int> influence) {
     if (action_id == 2) {
         return influence[4] != 0;

@@ -3,23 +3,18 @@
 #include <vector>
 
 class public_state;
-class action;
 
 class player {
-protected:
+public:
     //players have influences stored as a one hot vector of which influences they have,
     // influecnes are in the order ambassador, assassin, captain, contessa, duke
-    std::vector<int> _influences;
+    std::vector<int> influences;
     // player id is an integer to track player order and identity
-    int _id;
+    int id;
 
 
-public:
 // constructor which takes influence vector and id
     player(const std::vector<int>& influences, int id);
-    //getters
-    const std::vector<int>& get_influences() const;
-    int get_id() const;
     // choose action to take at the beginning of turn
     std::vector<int> choose_taken_action(const public_state& state, bool forced_coup) const;
     //decide whether to challenge another player's action    

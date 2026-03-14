@@ -1,7 +1,7 @@
 #include <cstdlib>          // for rand()
 #include "../lib/player.h"
 #include "../lib/public_state.h"
-#include "../lib/action.h"
+#include "../lib/helper.h"
 class action;
 class public_state;
 using namespace std;
@@ -9,13 +9,6 @@ using namespace std;
 
 player::player(const std::vector<int>& influences, int id): _influences(influences), _id(id) {}
 
-const std::vector<int>& player::get_influences() const {
-    return _influences;
-}
-
-int player::get_id() const {
-    return _id;
-}
 // takes public state as input, returns encoding of action taken by player as target, action_id, confidence
 std::vector<int> player::choose_taken_action(const public_state& state, bool forced_coup) const{
     int act_id;
@@ -59,23 +52,6 @@ int player::decide_challenge_block(int current_player_id, int blocker_id,  int a
         return 0;
     }
 };
-
-vector<int> player::get_influence_indexes(){
-    std::vector<int> present_influences;
-
-    for (size_t i = 0; i < _influences.size(); i++) {
-
-        if (_influences[i] == 1) {
-            present_influences.push_back(i);
-        }
-        else if (_influences[i] == 2){
-            present_influences.push_back(i);
-            present_influences.push_back(i);
-
-        }
-    }    
-    return present_influences;
-}
 
 int player::choose_lost_influence(const public_state& state) {
     // randomly choose one of the influences in _influences to lose influences represented as a vector of 0s and 1s where 1 means influence is present

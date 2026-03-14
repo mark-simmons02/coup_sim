@@ -1,5 +1,5 @@
-#ifndef ACTION_H
-#define ACTION_H
+#ifndef HELPER_H
+#define HELPER_H
 
 #include <vector>
 
